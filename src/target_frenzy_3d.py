@@ -380,7 +380,7 @@ def draw_hud():
                          GLUT_BITMAP_TIMES_ROMAN_24, (1, 0.2, 0.2))
 
     # View mode
-    view_text = "[FP] A/D: Rotate | Q/E: Strafe | F: 3P" if fp_view else "[3P] A/D: Rotate | F: FP | Arrows: camera"
+    view_text = "[FP] Q/E: Rotate | A/D: Strafe | F: 3P" if fp_view else "[3P] Q/E: Rotate | A/D: Strafe | F: FP"
     draw_text_2d(10, 15, view_text, GLUT_BITMAP_HELVETICA_12, (0.6, 0.6, 0.6))
 
     # Sprint hint
@@ -585,12 +585,12 @@ def draw_guidelines():
     y -= 30
     controls = [
         ("W / S", "Move forward / backward"),
-        ("A / D", "Rotate left / right"),
-        ("Q / E", "Strafe left / right"),
+        ("A / D", "Strafe left / right"),
+        ("Q / E", "Rotate left / right"),
         ("Shift + Move", "Sprint (uses stamina)"),
         ("Space", "Fire weapon"),
         ("F", "Toggle first-person / third-person"),
-        ("Arrow Keys", "Camera control (third person)"),
+        ("Arrow Keys", "Zoom in/out (third person)"),
         ("P", "Pause game"),
         ("R", "Restart (when dead)"),
     ]
@@ -1273,19 +1273,19 @@ def update_player():
         if p_shield_timer <= 0:
             p_shield = 0
 
-    # Rotation (A/D keys) - smooth with momentum
+    # Rotation (Q/E keys) - smooth with momentum
     rot_target = 0
     rot_max = 3.0  # degrees per frame at 60fps
-    if keys[b'a']:
+    if keys[b'q']:
         rot_target += rot_max
-    if keys[b'd']:
+    if keys[b'e']:
         rot_target -= rot_max
     # Smoothly interpolate rotation velocity
     p_rot_velocity = p_rot_velocity * 0.75 + rot_target * 0.25
     p_dir += p_rot_velocity * delta_time * 60
     p_dir %= 360
 
-    # Movement (W/S forward/back, Q/E strafe) - delta-time scaled
+    # Movement (W/S forward/back, A/D strafe) - delta-time scaled
     dt_scale = delta_time * 60
     ang = math.radians(p_dir - 90)
     move_x = move_y = 0
@@ -1295,10 +1295,10 @@ def update_player():
     if keys[b's']:
         move_x -= current_speed * math.cos(ang) * dt_scale
         move_y -= current_speed * math.sin(ang) * dt_scale
-    if keys[b'q']:
+    if keys[b'a']:
         move_x += current_speed * math.cos(ang + math.pi / 2) * dt_scale
         move_y += current_speed * math.sin(ang + math.pi / 2) * dt_scale
-    if keys[b'e']:
+    if keys[b'd']:
         move_x += current_speed * math.cos(ang - math.pi / 2) * dt_scale
         move_y += current_speed * math.sin(ang - math.pi / 2) * dt_scale
 
