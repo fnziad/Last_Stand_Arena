@@ -71,13 +71,13 @@ fp_view = False
 p_pos = [0, 0, 0]
 p_dir = 0
 p_spd = 8
-p_sprint_spd = 16
+p_sprint_spd = 14
 p_rot = 5
 p_hp = 100
 p_max_hp = 100
 p_score = 0
 p_mom = [0, 0, 0]
-p_fric = 0.85
+p_fric = 0.3
 p_shield = 0
 p_shield_max = 50
 p_damage_mult = 1.0
@@ -107,7 +107,7 @@ mouse_warping = False
 # ============================================================
 shots = []
 shot_size = 8
-shot_spd = 6
+shot_spd = 30
 gun_pos = [30, 15, 80]
 fire_cooldown = 0
 fire_rate = 0.15
@@ -118,10 +118,10 @@ fire_rate = 0.15
 enemies = []
 enemy_shots = []
 enemy_types = {
-    'grunt':  {'hp': 30,  'speed': 0.035, 'color': (0.9, 0.2, 0.1),  'size': 30, 'fire_rate': 3.0,  'points': 10,  'damage': 5,  'shot_speed': 3,   'accuracy': 8},
-    'tank':   {'hp': 80,  'speed': 0.015, 'color': (0.5, 0.05, 0.05), 'size': 45, 'fire_rate': 2.0,  'points': 25,  'damage': 15, 'shot_speed': 2.5, 'accuracy': 12},
-    'scout':  {'hp': 15,  'speed': 0.065, 'color': (1.0, 0.6, 0.1),  'size': 22, 'fire_rate': 1.5,  'points': 15,  'damage': 8,  'shot_speed': 4,   'accuracy': 10},
-    'sniper': {'hp': 25,  'speed': 0.01,  'color': (0.2, 0.8, 0.2),  'size': 25, 'fire_rate': 4.0,  'points': 20,  'damage': 20, 'shot_speed': 6,   'accuracy': 2},
+    'grunt':  {'hp': 30,  'speed': 3.5,  'color': (0.9, 0.2, 0.1),  'size': 30, 'fire_rate': 3.0,  'points': 10,  'damage': 5,  'shot_speed': 16,  'accuracy': 8},
+    'tank':   {'hp': 80,  'speed': 1.8,  'color': (0.5, 0.05, 0.05), 'size': 45, 'fire_rate': 2.0,  'points': 25,  'damage': 15, 'shot_speed': 12,  'accuracy': 12},
+    'scout':  {'hp': 15,  'speed': 6.0,  'color': (1.0, 0.6, 0.1),  'size': 22, 'fire_rate': 1.5,  'points': 15,  'damage': 8,  'shot_speed': 18,  'accuracy': 10},
+    'sniper': {'hp': 25,  'speed': 1.2,  'color': (0.2, 0.8, 0.2),  'size': 25, 'fire_rate': 4.0,  'points': 20,  'damage': 20, 'shot_speed': 25,  'accuracy': 2},
 }
 
 # ============================================================
@@ -1238,7 +1238,7 @@ def enemy_fire(enemy):
         'dir': angle,
         'speed': et['shot_speed'],
         'damage': et['damage'],
-        'life': 250,
+        'life': 5.0,
     })
 
 
@@ -1280,21 +1280,30 @@ def update_player():
 
     p_dir %= 360
 
-    # Movement (WASD with strafe)
+    # Movement (WASD with strafe) - delta-time scaled
+    dt_scale = delta_time * 60
     ang = math.radians(p_dir - 90)
     move_x = move_y = 0
     if keys[b'w']:
-        move_x += current_speed * math.cos(ang)
-        move_y += current_speed * math.sin(ang)
+        move_x += current_speed * math.cos(ang) * dt_scale
+        move_y += current_speed * math.sin(ang) * dt_scale
     if keys[b's']:
-        move_x -= current_speed * math.cos(ang)
-        move_y -= current_speed * math.sin(ang)
+        move_x -= current_speed * math.cos(ang) * dt_scale
+        move_y -= current_speed * math.sin(ang) * dt_scale
     if keys[b'a']:
-        move_x += current_speed * math.cos(ang + math.pi / 2)
-        move_y += current_speed * math.sin(ang + math.pi / 2)
+        move_x += current_speed * math.cos(ang + math.pi / 2) * dt_scale
+        move_y += current_speed * math.sin(ang + math.pi / 2) * dt_scale
     if keys[b'd']:
-        move_x += current_speed * math.cos(ang - math.pi / 2)
-        move_y += current_speed * math.sin(ang - math.pi / 2)
+        move_x += current_speed * math.cos(ang - math.pi / 2) * dt_scale
+        move_y += current_speed * math.sin(ang - math.pi / 2) * dt_scale
+
+    # Normalize diagonal movement so it's not faster
+    if move_x != 0 or move_y != 0:
+        mag = math.sqrt(move_x * move_x + move_y * move_y)
+        max_move = current_speed * dt_scale
+        if mag > max_move:
+            move_x = move_x / mag * max_move
+            move_y = move_y / mag * max_move
 
     final_x = p_pos[0] + move_x
     final_y = p_pos[1] + move_y
@@ -1303,7 +1312,7 @@ def update_player():
     final_x = max(-GRID + 20, min(GRID - 20, final_x))
     final_y = max(-GRID + 20, min(GRID - 20, final_y))
 
-    # Obstacle collision
+    # Obstacle collision with push-out
     if not check_obstacle_collision([final_x, final_y], radius=15):
         apply_smooth_movement(final_x, final_y, p_pos[2])
     else:
@@ -1312,6 +1321,9 @@ def update_player():
             apply_smooth_movement(final_x, p_pos[1], p_pos[2])
         elif not check_obstacle_collision([p_pos[0], final_y], radius=15):
             apply_smooth_movement(p_pos[0], final_y, p_pos[2])
+        else:
+            # Push player out of obstacle
+            push_out_of_obstacles()
 
 
 def apply_smooth_movement(t_x, t_y, t_z):
@@ -1323,6 +1335,35 @@ def apply_smooth_movement(t_x, t_y, t_z):
     p_pos[0] += p_mom[0]
     p_pos[1] += p_mom[1]
     p_pos[2] += p_mom[2]
+
+
+def push_out_of_obstacles():
+    """Push player out when stuck inside an obstacle"""
+    global p_pos, p_mom
+    push_radius = 20
+    for obs in obstacles:
+        if obs['type'] == 'crate':
+            half = obs['size'] / 2
+            dx = p_pos[0] - obs['pos'][0]
+            dy = p_pos[1] - obs['pos'][1]
+            overlap_x = half + push_radius - abs(dx)
+            overlap_y = half + push_radius - abs(dy)
+            if overlap_x > 0 and overlap_y > 0:
+                if overlap_x < overlap_y:
+                    p_pos[0] += math.copysign(overlap_x + 2, dx)
+                else:
+                    p_pos[1] += math.copysign(overlap_y + 2, dy)
+                p_mom = [0, 0, 0]
+        elif obs['type'] == 'pillar':
+            dx = p_pos[0] - obs['pos'][0]
+            dy = p_pos[1] - obs['pos'][1]
+            dist = math.sqrt(dx * dx + dy * dy)
+            min_dist = obs['size'] / 2 + push_radius
+            if dist < min_dist and dist > 0:
+                push = (min_dist - dist) + 2
+                p_pos[0] += (dx / dist) * push
+                p_pos[1] += (dy / dist) * push
+                p_mom = [0, 0, 0]
 
 
 def update_enemies():
@@ -1415,7 +1456,7 @@ def update_enemy_projectiles():
         ang = math.radians(s['dir'])
         s['pos'][0] += s['speed'] * math.cos(ang) * delta_time * 60
         s['pos'][1] += s['speed'] * math.sin(ang) * delta_time * 60
-        s['life'] -= 1
+        s['life'] -= delta_time
 
         # Hit player?
         dx = s['pos'][0] - p_pos[0]
