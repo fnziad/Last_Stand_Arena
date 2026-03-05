@@ -57,12 +57,13 @@ WALL_HEIGHT = 300
 # CAMERA
 # ============================================================
 cam_ang = 0
-cam_dist = 800
-cam_h = 600
-cam_min_h = 200
-cam_max_h = 1500
-cam_min_dist = 300
-cam_max_dist = 1500
+cam_dist = 500
+cam_h = 350
+cam_min_h = 150
+cam_max_h = 1000
+cam_min_dist = 200
+cam_max_dist = 1200
+cam_offset = 0  # Manual offset from player direction (arrow keys)
 fp_view = False
 
 # ============================================================
@@ -1811,7 +1812,7 @@ def keyboardUpListener(key, x, y):
 
 def specialKeyListener(key, x, y):
     """Handle special key events (arrow keys for camera)"""
-    global cam_ang, cam_dist, cam_h, shift_held
+    global cam_offset, cam_dist, cam_h, shift_held
     mods = glutGetModifiers()
     shift_held = bool(mods & GLUT_ACTIVE_SHIFT)
 
@@ -1826,9 +1827,9 @@ def specialKeyListener(key, x, y):
         if cam_dist < cam_max_dist:
             cam_dist += 30
     elif key == GLUT_KEY_LEFT:
-        cam_ang -= 5
+        cam_offset = (cam_offset - 10) % 360
     elif key == GLUT_KEY_RIGHT:
-        cam_ang += 5
+        cam_offset = (cam_offset + 10) % 360
 
 
 def mouseListener(button, state, x, y):
@@ -1842,6 +1843,7 @@ def mouseListener(button, state, x, y):
 
 def setupCamera():
     """Configure camera perspective and position"""
+    global cam_ang
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
     gluPerspective(FOV, float(WIN_W) / float(WIN_H), 1, 10000)
@@ -1858,6 +1860,17 @@ def setupCamera():
         cen_z = eye_z
         gluLookAt(eye_x, eye_y, eye_z, cen_x, cen_y, cen_z, 0, 0, 1)
     else:
+        # Smoothly track player facing direction + manual offset
+        target_ang = (p_dir - 90 + cam_offset) % 360
+        # Smooth interpolation for camera angle
+        diff = target_ang - cam_ang
+        if diff > 180:
+            diff -= 360
+        elif diff < -180:
+            diff += 360
+        cam_ang += diff * 0.08  # Smooth follow speed
+        cam_ang %= 360
+
         ang_r = math.radians(cam_ang)
         x = p_pos[0] + cam_dist * math.sin(ang_r)
         y = p_pos[1] + cam_dist * math.cos(ang_r)
