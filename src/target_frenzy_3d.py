@@ -26,6 +26,8 @@ from OpenGL.GLUT import GLUT_BITMAP_TIMES_ROMAN_24, GLUT_BITMAP_9_BY_15
 import math
 import random
 import time
+import sys
+import os
 
 # ============================================================
 # WINDOW CONFIGURATION
@@ -49,20 +51,20 @@ player_name = ""
 # ============================================================
 # ARENA CONFIGURATION
 # ============================================================
-GRID = 2000
-TILE_SIZE = 200
-WALL_HEIGHT = 300
+GRID = 10000
+TILE_SIZE = 500
+WALL_HEIGHT = 0
 
 # ============================================================
 # CAMERA
 # ============================================================
 cam_ang = 0
-cam_dist = 500
-cam_h = 350
-cam_min_h = 150
-cam_max_h = 1000
-cam_min_dist = 200
-cam_max_dist = 1200
+cam_dist = 350
+cam_h = 200
+cam_min_h = 100
+cam_max_h = 800
+cam_min_dist = 150
+cam_max_dist = 1000
 cam_offset = 0  # Manual offset from player direction (arrow keys)
 fp_view = False
 
@@ -132,12 +134,12 @@ level_up_display = 0
 # ============================================================
 # BATTLE ROYALE ZONE
 # ============================================================
-zone_radius = 2000
-zone_target_radius = 2000
-zone_shrink_rate = 0.8
+zone_radius = 10000
+zone_target_radius = 10000
+zone_shrink_rate = 1.5
 zone_damage = 2
-zone_shrink_interval = 45
-zone_next_shrink_time = 45
+zone_shrink_interval = 60
+zone_next_shrink_time = 60
 zone_center = [0, 0]
 zone_warning = False
 
@@ -316,7 +318,7 @@ def draw_hud():
     begin_2d()
 
     # Health bar
-    draw_text_2d(10, WIN_H - 30, "HP", GLUT_BITMAP_HELVETICA_18, (1, 1, 1))
+    draw_text_2d(10, WIN_H - 30, "HP", GLUT_BITMAP_HELVETICA_18, (0.1, 0.1, 0.2))
     hp_color = (0.1, 0.9, 0.1) if p_hp > 50 else (1, 1, 0) if p_hp > 25 else (1, 0.1, 0.1)
     draw_bar(40, WIN_H - 35, 220, 22, p_hp, p_max_hp, (0.2, 0, 0), hp_color)
     draw_text_2d(120, WIN_H - 30, f"{int(p_hp)}/{p_max_hp}", GLUT_BITMAP_HELVETICA_12, (1, 1, 1))
@@ -333,7 +335,7 @@ def draw_hud():
 
     # Score and combo (top right)
     score_text = f"Score: {p_score}"
-    draw_text_2d(WIN_W - 200, WIN_H - 25, score_text, GLUT_BITMAP_HELVETICA_18, (1, 1, 1))
+    draw_text_2d(WIN_W - 200, WIN_H - 25, score_text, GLUT_BITMAP_HELVETICA_18, (0.1, 0.1, 0.2))
     if combo_count > 1:
         combo_pulse = 0.7 + 0.3 * math.sin(game_time * 6)
         draw_text_2d(WIN_W - 200, WIN_H - 50, f"x{combo_multiplier:.0f} COMBO! ({combo_count})",
@@ -341,12 +343,12 @@ def draw_hud():
 
     # Level and kills (top center)
     level_text = f"Level {current_level}"
-    draw_text_2d(WIN_W // 2 - 40, WIN_H - 25, level_text, GLUT_BITMAP_HELVETICA_18, (1, 1, 0.5))
+    draw_text_2d(WIN_W // 2 - 40, WIN_H - 25, level_text, GLUT_BITMAP_HELVETICA_18, (0.5, 0.35, 0.05))
     kills_text = f"Kills: {kills_this_level}/{kills_to_advance}"
-    draw_text_2d(WIN_W // 2 - 50, WIN_H - 48, kills_text, GLUT_BITMAP_HELVETICA_12, (0.8, 0.8, 0.8))
+    draw_text_2d(WIN_W // 2 - 50, WIN_H - 48, kills_text, GLUT_BITMAP_HELVETICA_12, (0.3, 0.3, 0.35))
 
     # Player name
-    draw_text_2d(10, WIN_H - 108, player_name, GLUT_BITMAP_HELVETICA_12, (0.7, 0.7, 1.0))
+    draw_text_2d(10, WIN_H - 108, player_name, GLUT_BITMAP_HELVETICA_12, (0.2, 0.2, 0.5))
 
     # Active power-up indicators
     pu_y = WIN_H - 130
@@ -380,8 +382,8 @@ def draw_hud():
                          GLUT_BITMAP_TIMES_ROMAN_24, (1, 0.2, 0.2))
 
     # View mode
-    view_text = "[FP] Q/E: Rotate | A/D: Strafe | F: 3P" if fp_view else "[3P] Q/E: Rotate | A/D: Strafe | F: FP"
-    draw_text_2d(10, 15, view_text, GLUT_BITMAP_HELVETICA_12, (0.6, 0.6, 0.6))
+    view_text = "[FP] A/D: Rotate | Q/E: Strafe | ESC: Quit" if fp_view else "[3P] A/D: Rotate | Q/E: Strafe | ESC: Quit"
+    draw_text_2d(10, 15, view_text, GLUT_BITMAP_HELVETICA_12, (0.3, 0.3, 0.4))
 
     # Sprint hint
     if p_sprinting:
@@ -536,22 +538,22 @@ def draw_minimap():
 def draw_name_entry():
     """Draw the name entry screen"""
     begin_2d()
-    draw_rect(0, 0, WIN_W, WIN_H, (0.05, 0.05, 0.15))
+    draw_rect(0, 0, WIN_W, WIN_H, (0.82, 0.88, 0.95))
 
     draw_text_2d(WIN_W // 2 - 160, WIN_H // 2 + 180, "TARGET FRENZY 3D",
-                 GLUT_BITMAP_TIMES_ROMAN_24, (1, 0.8, 0.2))
+                 GLUT_BITMAP_TIMES_ROMAN_24, (0.2, 0.4, 0.15))
     draw_text_2d(WIN_W // 2 - 120, WIN_H // 2 + 150, "- BATTLE ROYALE EDITION -",
-                 GLUT_BITMAP_HELVETICA_18, (0.8, 0.6, 0.2))
+                 GLUT_BITMAP_HELVETICA_18, (0.5, 0.35, 0.1))
 
     draw_text_2d(WIN_W // 2 - 100, WIN_H // 2 + 50, "ENTER YOUR NAME:",
-                 GLUT_BITMAP_HELVETICA_18, (0.8, 0.8, 0.8))
+                 GLUT_BITMAP_HELVETICA_18, (0.2, 0.2, 0.3))
 
     # Name box
     box_w = 300
     box_x = WIN_W // 2 - box_w // 2
     box_y = WIN_H // 2 - 5
-    draw_rect(box_x, box_y, box_w, 35, (0.15, 0.15, 0.25))
-    glColor3f(0.5, 0.5, 0.8)
+    draw_rect(box_x, box_y, box_w, 35, (1, 1, 1))
+    glColor3f(0.3, 0.4, 0.6)
     glBegin(GL_LINE_LOOP)
     glVertex2f(box_x, box_y)
     glVertex2f(box_x + box_w, box_y)
@@ -562,10 +564,12 @@ def draw_name_entry():
     # Name text with blinking cursor
     cursor = "_" if int(game_time * 2) % 2 == 0 else " "
     draw_text_2d(box_x + 10, box_y + 10, player_name + cursor,
-                 GLUT_BITMAP_HELVETICA_18, (1, 1, 1))
+                 GLUT_BITMAP_HELVETICA_18, (0.1, 0.1, 0.2))
 
     draw_text_2d(WIN_W // 2 - 100, WIN_H // 2 - 50, "Press ENTER to continue",
-                 GLUT_BITMAP_HELVETICA_12, (0.5, 0.5, 0.5))
+                 GLUT_BITMAP_HELVETICA_12, (0.4, 0.4, 0.5))
+    draw_text_2d(WIN_W // 2 - 60, WIN_H // 2 - 80, "ESC to Quit",
+                 GLUT_BITMAP_HELVETICA_12, (0.5, 0.4, 0.4))
 
     end_2d()
 
@@ -573,34 +577,35 @@ def draw_name_entry():
 def draw_guidelines():
     """Draw the controls/guidelines screen"""
     begin_2d()
-    draw_rect(0, 0, WIN_W, WIN_H, (0.05, 0.05, 0.12))
+    draw_rect(0, 0, WIN_W, WIN_H, (0.82, 0.88, 0.95))
 
     cx = WIN_W // 2
     y = WIN_H - 60
 
-    draw_text_2d(cx - 120, y, "TARGET FRENZY 3D", GLUT_BITMAP_TIMES_ROMAN_24, (1, 0.8, 0.2))
+    draw_text_2d(cx - 120, y, "TARGET FRENZY 3D", GLUT_BITMAP_TIMES_ROMAN_24, (0.2, 0.4, 0.15))
     y -= 50
 
-    draw_text_2d(cx - 80, y, "=== CONTROLS ===", GLUT_BITMAP_HELVETICA_18, (0.5, 0.8, 1))
+    draw_text_2d(cx - 80, y, "=== CONTROLS ===", GLUT_BITMAP_HELVETICA_18, (0.15, 0.4, 0.6))
     y -= 30
     controls = [
         ("W / S", "Move forward / backward"),
-        ("A / D", "Strafe left / right"),
-        ("Q / E", "Rotate left / right"),
+        ("A / D", "Rotate left / right"),
+        ("Q / E", "Strafe left / right"),
         ("Shift + Move", "Sprint (uses stamina)"),
         ("Space", "Fire weapon"),
         ("F", "Toggle first-person / third-person"),
         ("Arrow Keys", "Zoom in/out (third person)"),
         ("P", "Pause game"),
         ("R", "Restart (when dead)"),
+        ("ESC", "Quit game"),
     ]
     for key, desc in controls:
-        draw_text_2d(cx - 200, y, key, GLUT_BITMAP_HELVETICA_12, (1, 1, 0.5))
-        draw_text_2d(cx + 20, y, desc, GLUT_BITMAP_HELVETICA_12, (0.8, 0.8, 0.8))
+        draw_text_2d(cx - 200, y, key, GLUT_BITMAP_HELVETICA_12, (0.6, 0.4, 0.1))
+        draw_text_2d(cx + 20, y, desc, GLUT_BITMAP_HELVETICA_12, (0.2, 0.2, 0.3))
         y -= 22
 
     y -= 15
-    draw_text_2d(cx - 80, y, "=== GAMEPLAY ===", GLUT_BITMAP_HELVETICA_18, (0.5, 1, 0.5))
+    draw_text_2d(cx - 80, y, "=== GAMEPLAY ===", GLUT_BITMAP_HELVETICA_18, (0.15, 0.5, 0.2))
     y -= 28
     tips = [
         "- Eliminate enemies to score points and level up",
@@ -611,25 +616,25 @@ def draw_guidelines():
         "- Collect power-ups scattered across the arena",
     ]
     for tip in tips:
-        draw_text_2d(cx - 220, y, tip, GLUT_BITMAP_HELVETICA_12, (0.7, 0.7, 0.7))
+        draw_text_2d(cx - 220, y, tip, GLUT_BITMAP_HELVETICA_12, (0.3, 0.3, 0.35))
         y -= 20
 
     y -= 15
-    draw_text_2d(cx - 80, y, "=== POWER-UPS ===", GLUT_BITMAP_HELVETICA_18, (1, 0.5, 1))
+    draw_text_2d(cx - 80, y, "=== POWER-UPS ===", GLUT_BITMAP_HELVETICA_18, (0.6, 0.2, 0.5))
     y -= 28
     pups = [
-        ((0.1, 1, 0.1), "Health Pack - Restores 30 HP"),
-        ((0.1, 0.5, 1), "Speed Boost - 10s faster movement"),
-        ((1, 0.1, 0.1), "Damage Boost - 10s double damage"),
-        ((0.9, 0.9, 0.1), "Shield - 15s damage absorption"),
+        ((0.1, 0.7, 0.1), "Health Pack - Restores 30 HP"),
+        ((0.1, 0.4, 0.8), "Speed Boost - 10s faster movement"),
+        ((0.8, 0.1, 0.1), "Damage Boost - 10s double damage"),
+        ((0.7, 0.7, 0.1), "Shield - 15s damage absorption"),
     ]
     for color, desc in pups:
         draw_rect(cx - 220, y - 2, 12, 12, color)
-        draw_text_2d(cx - 200, y, desc, GLUT_BITMAP_HELVETICA_12, (0.8, 0.8, 0.8))
+        draw_text_2d(cx - 200, y, desc, GLUT_BITMAP_HELVETICA_12, (0.3, 0.3, 0.35))
         y -= 20
 
     y -= 15
-    draw_text_2d(cx - 80, y, "=== ENEMIES ===", GLUT_BITMAP_HELVETICA_18, (1, 0.5, 0.5))
+    draw_text_2d(cx - 80, y, "=== ENEMIES ===", GLUT_BITMAP_HELVETICA_18, (0.7, 0.2, 0.2))
     y -= 28
     enemy_info = [
         ((0.9, 0.2, 0.1), "Grunt - Standard chaser, moderate threat"),
@@ -639,12 +644,12 @@ def draw_guidelines():
     ]
     for color, desc in enemy_info:
         draw_rect(cx - 220, y - 2, 12, 12, color)
-        draw_text_2d(cx - 200, y, desc, GLUT_BITMAP_HELVETICA_12, (0.8, 0.8, 0.8))
+        draw_text_2d(cx - 200, y, desc, GLUT_BITMAP_HELVETICA_12, (0.3, 0.3, 0.35))
         y -= 20
 
     y -= 20
-    pulse = 0.5 + 0.5 * math.sin(game_time * 3)
-    draw_text_2d(cx - 110, y, "Press ENTER to start!", GLUT_BITMAP_HELVETICA_18, (pulse, 1, pulse))
+    pulse = 0.3 + 0.3 * math.sin(game_time * 3)
+    draw_text_2d(cx - 110, y, "Press ENTER to start!", GLUT_BITMAP_HELVETICA_18, (pulse, 0.5, pulse))
 
     end_2d()
 
@@ -652,7 +657,7 @@ def draw_guidelines():
 def draw_game_over():
     """Draw game over screen with stats"""
     begin_2d()
-    draw_rect(0, 0, WIN_W, WIN_H, (0.05, 0, 0, 0.7))
+    draw_rect(0, 0, WIN_W, WIN_H, (0.15, 0.08, 0.08, 0.65))
 
     cx = WIN_W // 2
     y = WIN_H // 2 + 160
@@ -660,7 +665,7 @@ def draw_game_over():
     draw_text_2d(cx - 80, y, "GAME OVER", GLUT_BITMAP_TIMES_ROMAN_24, (1, 0.2, 0.2))
     y -= 50
 
-    draw_text_2d(cx - 100, y, f"Player: {player_name}", GLUT_BITMAP_HELVETICA_18, (0.8, 0.8, 1))
+    draw_text_2d(cx - 100, y, f"Player: {player_name}", GLUT_BITMAP_HELVETICA_18, (1, 1, 1))
     y -= 35
 
     stats = [
@@ -702,20 +707,14 @@ def draw_pause():
 # ============================================================
 
 def draw_arena():
-    """Render the large battle arena floor"""
+    """Render the large battle arena floor - bright outdoor grass"""
     glBegin(GL_QUADS)
     for i in range(-GRID, GRID, TILE_SIZE):
         for j in range(-GRID, GRID, TILE_SIZE):
-            cx = i + TILE_SIZE / 2
-            cy = j + TILE_SIZE / 2
-            dist = math.sqrt(cx * cx + cy * cy) / GRID
-
             if (i // TILE_SIZE + j // TILE_SIZE) % 2 == 0:
-                r, g, b = 0.35 - dist * 0.08, 0.35 - dist * 0.08, 0.42 - dist * 0.08
+                glColor3f(0.42, 0.72, 0.30)
             else:
-                r, g, b = 0.25 - dist * 0.06, 0.25 - dist * 0.06, 0.32 - dist * 0.06
-
-            glColor3f(max(r, 0.08), max(g, 0.08), max(b, 0.1))
+                glColor3f(0.36, 0.64, 0.26)
             glNormal3f(0, 0, 1)
             glVertex3f(i, j, 0)
             glVertex3f(i + TILE_SIZE, j, 0)
@@ -725,35 +724,8 @@ def draw_arena():
 
 
 def draw_walls():
-    """Draw arena boundary walls"""
-    glBegin(GL_QUADS)
-    # North wall
-    glColor3f(0.15, 0.2, 0.15)
-    glNormal3f(0, -1, 0)
-    glVertex3f(-GRID, GRID, 0)
-    glVertex3f(GRID, GRID, 0)
-    glVertex3f(GRID, GRID, WALL_HEIGHT)
-    glVertex3f(-GRID, GRID, WALL_HEIGHT)
-    # South wall
-    glNormal3f(0, 1, 0)
-    glVertex3f(-GRID, -GRID, 0)
-    glVertex3f(GRID, -GRID, 0)
-    glVertex3f(GRID, -GRID, WALL_HEIGHT)
-    glVertex3f(-GRID, -GRID, WALL_HEIGHT)
-    # East wall
-    glColor3f(0.15, 0.15, 0.2)
-    glNormal3f(-1, 0, 0)
-    glVertex3f(GRID, -GRID, 0)
-    glVertex3f(GRID, GRID, 0)
-    glVertex3f(GRID, GRID, WALL_HEIGHT)
-    glVertex3f(GRID, -GRID, WALL_HEIGHT)
-    # West wall
-    glNormal3f(1, 0, 0)
-    glVertex3f(-GRID, -GRID, 0)
-    glVertex3f(-GRID, GRID, 0)
-    glVertex3f(-GRID, GRID, WALL_HEIGHT)
-    glVertex3f(-GRID, -GRID, WALL_HEIGHT)
-    glEnd()
+    """Arena boundary - no visible walls for open-world feel"""
+    pass
 
 
 def draw_obstacles():
@@ -824,7 +796,7 @@ def draw_zone():
 
 
 def draw_player():
-    """Render the player character model"""
+    """Render the player character model - tactical soldier"""
     glPushMatrix()
     glTranslatef(*p_pos)
     glRotatef(p_dir, 0, 0, 1)
@@ -832,60 +804,145 @@ def draw_player():
     if game_state == STATE_GAME_OVER:
         glRotatef(-90, 1, 0, 0)
 
-    # Legs
-    glColor3f(0.1, 0.1, 0.5)
+    # Boots
+    glColor3f(0.22, 0.16, 0.1)
+    for side in (-10, 10):
+        glPushMatrix()
+        glTranslatef(side, -2, 6)
+        glScalef(1, 1.3, 1)
+        glutSolidCube(12)
+        glPopMatrix()
+
+    # Legs (tactical pants)
+    glColor3f(0.38, 0.35, 0.25)
+    for side in (-10, 10):
+        glPushMatrix()
+        glTranslatef(side, 0, 12)
+        gluCylinder(gluNewQuadric(), 6, 8, 35, 8, 1)
+        glPopMatrix()
+
+    # Belt
+    glColor3f(0.25, 0.18, 0.12)
     glPushMatrix()
-    glTranslatef(-8, 0, 0)
-    gluCylinder(gluNewQuadric(), 5, 10, 45, 10, 1)
-    glPopMatrix()
-    glPushMatrix()
-    glTranslatef(8, 0, 0)
-    gluCylinder(gluNewQuadric(), 5, 10, 45, 10, 1)
+    glTranslatef(0, 0, 48)
+    glScalef(1.1, 0.8, 0.25)
+    glutSolidCube(30)
     glPopMatrix()
 
-    # Body
+    # Torso (tactical vest)
+    glColor3f(0.32, 0.44, 0.28)
     glPushMatrix()
-    glTranslatef(0, 0, 70)
-    glColor3f(0.2, 0.35, 0.2)
-    glutSolidCube(38)
+    glTranslatef(0, 0, 72)
+    glScalef(1, 0.7, 1.1)
+    glutSolidCube(36)
+    glPopMatrix()
+
+    # Vest pockets
+    glColor3f(0.28, 0.38, 0.22)
+    for side in (-12, 12):
+        glPushMatrix()
+        glTranslatef(side, -14, 68)
+        glutSolidCube(7)
+        glPopMatrix()
+
+    # Neck
+    glColor3f(0.9, 0.75, 0.6)
+    glPushMatrix()
+    glTranslatef(0, 0, 92)
+    gluCylinder(gluNewQuadric(), 5, 6, 8, 8, 1)
     glPopMatrix()
 
     # Head
+    glColor3f(0.9, 0.75, 0.6)
     glPushMatrix()
     glTranslatef(0, 0, 108)
-    glColor3f(0.85, 0.7, 0.55)
-    gluSphere(gluNewQuadric(), 18, 12, 12)
-    # Eyes
-    glTranslatef(6, -15, 3)
-    glColor3f(0.1, 0.1, 0.1)
-    gluSphere(gluNewQuadric(), 3, 6, 6)
-    glTranslatef(-12, 0, 0)
-    gluSphere(gluNewQuadric(), 3, 6, 6)
+    gluSphere(gluNewQuadric(), 15, 12, 12)
     glPopMatrix()
+
+    # Helmet
+    glColor3f(0.3, 0.4, 0.25)
+    glPushMatrix()
+    glTranslatef(0, 0, 114)
+    gluSphere(gluNewQuadric(), 17, 12, 8)
+    glPopMatrix()
+
+    # Eyes
+    glColor3f(0.15, 0.15, 0.15)
+    for side in (-5, 5):
+        glPushMatrix()
+        glTranslatef(side, -13, 109)
+        gluSphere(gluNewQuadric(), 2, 6, 6)
+        glPopMatrix()
 
     # Arms
-    glColor3f(0.85, 0.7, 0.55)
-    glPushMatrix()
-    glTranslatef(22, -20, 55)
-    glRotatef(-70, 1, 0, 0)
-    gluCylinder(gluNewQuadric(), 4, 6, 45, 8, 1)
-    glPopMatrix()
-    glPushMatrix()
-    glTranslatef(-22, -20, 55)
-    glRotatef(-70, 1, 0, 0)
-    gluCylinder(gluNewQuadric(), 4, 6, 45, 8, 1)
-    glPopMatrix()
+    for side in (1, -1):
+        # Upper arm (sleeve)
+        glColor3f(0.32, 0.44, 0.28)
+        glPushMatrix()
+        glTranslatef(side * 22, -8, 78)
+        glRotatef(-55, 1, 0, 0)
+        gluCylinder(gluNewQuadric(), 5, 4, 25, 8, 1)
+        glPopMatrix()
+        # Forearm (gloves)
+        glColor3f(0.85, 0.7, 0.55)
+        glPushMatrix()
+        glTranslatef(side * 22, -26, 62)
+        glRotatef(-75, 1, 0, 0)
+        gluCylinder(gluNewQuadric(), 3.5, 4.5, 20, 8, 1)
+        glPopMatrix()
 
-    # Gun
+    # Gun (assault rifle)
     glPushMatrix()
-    glTranslatef(0, -45, 60)
+    glTranslatef(0, -42, 65)
     glRotatef(-80, 1, 0, 0)
-    glColor3f(0.3, 0.3, 0.35)
-    gluCylinder(gluNewQuadric(), 3, 5, 70, 8, 1)
+    # Receiver
+    glColor3f(0.22, 0.22, 0.28)
+    glPushMatrix()
+    glScalef(5, 6, 26)
+    glutSolidCube(1)
+    glPopMatrix()
+    # Barrel
+    glColor3f(0.16, 0.16, 0.2)
+    glPushMatrix()
+    glTranslatef(0, 0, 20)
+    gluCylinder(gluNewQuadric(), 2.5, 2, 35, 8, 1)
+    glPopMatrix()
     # Muzzle
-    glTranslatef(0, 0, 70)
-    glColor3f(0.6, 0.4, 0.1)
-    gluCylinder(gluNewQuadric(), 5, 3, 15, 8, 1)
+    glColor3f(0.35, 0.28, 0.12)
+    glPushMatrix()
+    glTranslatef(0, 0, 53)
+    gluCylinder(gluNewQuadric(), 3, 2.5, 8, 8, 1)
+    glPopMatrix()
+    # Magazine
+    glColor3f(0.18, 0.14, 0.1)
+    glPushMatrix()
+    glTranslatef(0, -5, 4)
+    glRotatef(-10, 1, 0, 0)
+    glScalef(3.5, 2, 11)
+    glutSolidCube(1)
+    glPopMatrix()
+    # Stock
+    glColor3f(0.28, 0.2, 0.14)
+    glPushMatrix()
+    glTranslatef(0, 1, -12)
+    glScalef(4, 5, 14)
+    glutSolidCube(1)
+    glPopMatrix()
+    # Sight
+    glColor3f(0.45, 0.45, 0.5)
+    glPushMatrix()
+    glTranslatef(0, 4, 14)
+    glScalef(1.5, 3, 1.5)
+    glutSolidCube(1)
+    glPopMatrix()
+    glPopMatrix()  # End gun
+
+    # Backpack
+    glColor3f(0.3, 0.32, 0.22)
+    glPushMatrix()
+    glTranslatef(0, 15, 68)
+    glScalef(0.75, 0.4, 0.65)
+    glutSolidCube(28)
     glPopMatrix()
 
     # Shield effect
@@ -893,9 +950,11 @@ def draw_player():
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         shield_pulse = 0.15 + 0.05 * math.sin(game_time * 4)
-        glColor4f(0.3, 0.3, 1.0, shield_pulse)
-        glTranslatef(0, 0, 55)
-        gluSphere(gluNewQuadric(), 55, 16, 16)
+        glColor4f(0.3, 0.6, 1.0, shield_pulse)
+        glPushMatrix()
+        glTranslatef(0, 0, 58)
+        gluSphere(gluNewQuadric(), 58, 16, 16)
+        glPopMatrix()
         glDisable(GL_BLEND)
 
     glPopMatrix()
@@ -1048,10 +1107,12 @@ def draw_particles_3d():
 def draw_scene():
     """Render the complete 3D scene"""
     draw_arena()
-    draw_walls()
     draw_obstacles()
     draw_zone()
-    draw_player()
+
+    # Don't draw player model in first-person view
+    if not fp_view:
+        draw_player()
 
     for e in enemies:
         draw_enemy(e)
@@ -1068,49 +1129,158 @@ def draw_scene():
     draw_particles_3d()
 
 
+def draw_fp_gun():
+    """Draw first-person gun model overlaid on the screen"""
+    if not fp_view or game_state != STATE_PLAYING:
+        return
+
+    # Clear depth so gun always renders on top
+    glClear(GL_DEPTH_BUFFER_BIT)
+    glMatrixMode(GL_PROJECTION)
+    glPushMatrix()
+    glLoadIdentity()
+    gluPerspective(FOV, float(WIN_W) / float(WIN_H), 0.1, 100)
+    glMatrixMode(GL_MODELVIEW)
+    glPushMatrix()
+    glLoadIdentity()
+    glDisable(GL_FOG)
+
+    # Gun sway based on movement
+    sway_x = 0
+    sway_y = 0
+    if keys.get(b'w') or keys.get(b's') or keys.get(b'q') or keys.get(b'e'):
+        sway_x = math.sin(game_time * 8) * 0.012
+        sway_y = abs(math.sin(game_time * 8)) * 0.008
+
+    # Position: bottom right of viewport
+    glTranslatef(0.35 + sway_x, -0.4 + sway_y, -0.85)
+    glRotatef(-8, 0, 1, 0)
+    glRotatef(-2, 1, 0, 0)
+
+    # Receiver body
+    glColor3f(0.24, 0.24, 0.3)
+    glPushMatrix()
+    glScalef(0.05, 0.06, 0.38)
+    glutSolidCube(1)
+    glPopMatrix()
+
+    # Barrel
+    glColor3f(0.18, 0.18, 0.22)
+    glPushMatrix()
+    glTranslatef(0, 0.01, -0.28)
+    glScalef(0.022, 0.022, 0.32)
+    glutSolidCube(1)
+    glPopMatrix()
+
+    # Muzzle tip
+    glColor3f(0.5, 0.35, 0.12)
+    glPushMatrix()
+    glTranslatef(0, 0.01, -0.45)
+    glScalef(0.028, 0.028, 0.04)
+    glutSolidCube(1)
+    glPopMatrix()
+
+    # Magazine
+    glColor3f(0.16, 0.13, 0.1)
+    glPushMatrix()
+    glTranslatef(0, -0.04, 0.02)
+    glRotatef(-5, 1, 0, 0)
+    glScalef(0.03, 0.07, 0.06)
+    glutSolidCube(1)
+    glPopMatrix()
+
+    # Grip
+    glColor3f(0.2, 0.14, 0.08)
+    glPushMatrix()
+    glTranslatef(0, -0.08, 0.12)
+    glRotatef(18, 1, 0, 0)
+    glScalef(0.04, 0.1, 0.045)
+    glutSolidCube(1)
+    glPopMatrix()
+
+    # Hand holding grip
+    glColor3f(0.9, 0.75, 0.6)
+    glPushMatrix()
+    glTranslatef(0, -0.055, 0.05)
+    glScalef(0.06, 0.045, 0.08)
+    glutSolidCube(1)
+    glPopMatrix()
+
+    # Front sight
+    glColor3f(0.5, 0.5, 0.55)
+    glPushMatrix()
+    glTranslatef(0, 0.042, -0.12)
+    glScalef(0.01, 0.022, 0.01)
+    glutSolidCube(1)
+    glPopMatrix()
+
+    # Rear sight
+    glColor3f(0.5, 0.5, 0.55)
+    glPushMatrix()
+    glTranslatef(0, 0.042, 0.07)
+    glScalef(0.018, 0.022, 0.01)
+    glutSolidCube(1)
+    glPopMatrix()
+
+    # Supporting hand (forward grip)
+    glColor3f(0.9, 0.75, 0.6)
+    glPushMatrix()
+    glTranslatef(0, -0.015, -0.08)
+    glScalef(0.05, 0.035, 0.055)
+    glutSolidCube(1)
+    glPopMatrix()
+
+    # Restore matrices
+    glPopMatrix()
+    glMatrixMode(GL_PROJECTION)
+    glPopMatrix()
+    glMatrixMode(GL_MODELVIEW)
+    glEnable(GL_FOG)
+
+
 # ============================================================
 # GAME LOGIC
 # ============================================================
 
 def generate_obstacles():
-    """Generate random obstacles across the arena"""
+    """Generate random obstacles across the large arena"""
     global obstacles
     obstacles = []
-    # Crate clusters
-    for _ in range(20):
-        cx = random.uniform(-GRID + 400, GRID - 400)
-        cy = random.uniform(-GRID + 400, GRID - 400)
-        if abs(cx) < 300 and abs(cy) < 300:
+    # Crate clusters - many more for large arena
+    for _ in range(80):
+        cx = random.uniform(-GRID + 600, GRID - 600)
+        cy = random.uniform(-GRID + 600, GRID - 600)
+        if abs(cx) < 400 and abs(cy) < 400:
             continue
-        for _ in range(random.randint(1, 3)):
-            ox = cx + random.uniform(-80, 80)
-            oy = cy + random.uniform(-80, 80)
-            size = random.uniform(40, 70)
-            shade = random.uniform(0.4, 0.65)
+        for _ in range(random.randint(1, 4)):
+            ox = cx + random.uniform(-100, 100)
+            oy = cy + random.uniform(-100, 100)
+            size = random.uniform(40, 80)
+            shade = random.uniform(0.55, 0.75)
             obstacles.append({
                 'pos': [ox, oy, 0],
                 'size': size,
-                'color': (shade, shade * 0.7, shade * 0.4),
+                'color': (shade, shade * 0.85, shade * 0.65),
                 'type': 'crate'
             })
     # Pillars
-    for _ in range(10):
-        px = random.uniform(-GRID + 300, GRID - 300)
-        py = random.uniform(-GRID + 300, GRID - 300)
-        if abs(px) < 350 and abs(py) < 350:
+    for _ in range(30):
+        px = random.uniform(-GRID + 500, GRID - 500)
+        py = random.uniform(-GRID + 500, GRID - 500)
+        if abs(px) < 450 and abs(py) < 450:
             continue
         obstacles.append({
             'pos': [px, py, 0],
             'size': random.uniform(30, 50),
             'height': random.uniform(100, 200),
-            'color': (0.35, 0.35, 0.45),
+            'color': (0.68, 0.65, 0.6),
             'type': 'pillar'
         })
 
 
 def spawn_enemies_for_level():
     """Spawn enemies based on current level"""
-    count = 5 + current_level * 2
+    count = 8 + current_level * 3
     for _ in range(count):
         roll = random.random()
         if current_level < 3:
@@ -1144,18 +1314,21 @@ def spawn_enemies_for_level():
 
 
 def spawn_enemy(etype, pos=None):
-    """Spawn a single enemy of given type"""
+    """Spawn a single enemy of given type near the player"""
     et = enemy_types[etype]
     if pos is None:
         attempts = 0
         while attempts < 50:
-            x = random.uniform(-zone_radius * 0.85 + zone_center[0],
-                               zone_radius * 0.85 + zone_center[0])
-            y = random.uniform(-zone_radius * 0.85 + zone_center[1],
-                               zone_radius * 0.85 + zone_center[1])
-            dx = x - p_pos[0]
-            dy = y - p_pos[1]
-            if dx * dx + dy * dy > 400 * 400:
+            # Spawn within reasonable distance from player
+            angle = random.uniform(0, 2 * math.pi)
+            dist = random.uniform(600, 3000)
+            x = p_pos[0] + dist * math.cos(angle)
+            y = p_pos[1] + dist * math.sin(angle)
+            # Keep within zone and arena
+            dx = x - zone_center[0]
+            dy = y - zone_center[1]
+            if (dx * dx + dy * dy < (zone_radius * 0.85) ** 2 and
+                abs(x) < GRID - 100 and abs(y) < GRID - 100):
                 break
             attempts += 1
         pos = [x, y, 0]
@@ -1202,11 +1375,11 @@ def fire_weapon():
     total_shots_fired += 1
 
     if fp_view:
-        ang = math.radians(p_dir + 45)
-        x = p_pos[0] + (gun_pos[0] + 5) * math.sin(ang) - gun_pos[1] * math.cos(ang)
-        y = p_pos[1] - (gun_pos[0] + 5) * math.cos(ang) - gun_pos[1] * math.sin(ang)
-        z = p_pos[2] + gun_pos[2]
-        spread = 0.6
+        ang = math.radians(p_dir)
+        x = p_pos[0] + 15 * math.sin(ang)
+        y = p_pos[1] - 15 * math.cos(ang)
+        z = p_pos[2] + 90
+        spread = 0.5
     else:
         ang = math.radians(p_dir - 90)
         off_x = gun_pos[0] * math.cos(ang) - gun_pos[1] * math.sin(ang)
@@ -1248,7 +1421,7 @@ def update_player():
 
     # Sprint
     current_speed = p_spd
-    p_sprinting = shift_held and p_stamina > 0 and (keys[b'w'] or keys[b's'] or keys[b'a'] or keys[b'd'])
+    p_sprinting = shift_held and p_stamina > 0 and (keys[b'w'] or keys[b's'] or keys[b'q'] or keys[b'e'])
     if p_sprinting:
         current_speed = p_sprint_spd
         p_stamina = max(0, p_stamina - p_stamina_drain * delta_time * 60)
@@ -1273,12 +1446,12 @@ def update_player():
         if p_shield_timer <= 0:
             p_shield = 0
 
-    # Rotation (Q/E keys) - smooth with momentum
+    # Rotation (A/D keys) - smooth with momentum like FPS
     rot_target = 0
-    rot_max = 3.0  # degrees per frame at 60fps
-    if keys[b'q']:
+    rot_max = 3.5  # degrees per frame at 60fps
+    if keys[b'a']:
         rot_target += rot_max
-    if keys[b'e']:
+    if keys[b'd']:
         rot_target -= rot_max
     # Smoothly interpolate rotation velocity
     p_rot_velocity = p_rot_velocity * 0.75 + rot_target * 0.25
@@ -1295,10 +1468,10 @@ def update_player():
     if keys[b's']:
         move_x -= current_speed * math.cos(ang) * dt_scale
         move_y -= current_speed * math.sin(ang) * dt_scale
-    if keys[b'a']:
+    if keys[b'q']:
         move_x += current_speed * math.cos(ang + math.pi / 2) * dt_scale
         move_y += current_speed * math.sin(ang + math.pi / 2) * dt_scale
-    if keys[b'd']:
+    if keys[b'e']:
         move_x += current_speed * math.cos(ang - math.pi / 2) * dt_scale
         move_y += current_speed * math.sin(ang - math.pi / 2) * dt_scale
 
@@ -1428,7 +1601,7 @@ def update_enemies():
 
         # Shooting
         e['fire_cd'] -= delta_time
-        if e['fire_cd'] <= 0 and dist < 1200:
+        if e['fire_cd'] <= 0 and dist < 2000:
             enemy_fire(e)
             e['fire_cd'] = et['fire_rate'] * random.uniform(0.7, 1.3)
 
@@ -1549,8 +1722,8 @@ def update_zone():
     global zone_radius, zone_target_radius, zone_next_shrink_time, zone_center, zone_warning
 
     # Trigger shrink after level 2
-    if current_level >= 2 and game_time >= zone_next_shrink_time and zone_target_radius > 350:
-        zone_target_radius = max(zone_target_radius - 150, 350)
+    if current_level >= 2 and game_time >= zone_next_shrink_time and zone_target_radius > 800:
+        zone_target_radius = max(zone_target_radius - 500, 800)
         zone_next_shrink_time = game_time + zone_shrink_interval
         zone_center[0] += random.uniform(-80, 80)
         zone_center[1] += random.uniform(-80, 80)
@@ -1714,9 +1887,9 @@ def init_game():
     time_survived = 0
     game_time = 0
 
-    zone_radius = 2000
-    zone_target_radius = 2000
-    zone_next_shrink_time = 45
+    zone_radius = 10000
+    zone_target_radius = 10000
+    zone_next_shrink_time = 60
     zone_center = [0, 0]
     zone_warning = False
 
@@ -1758,6 +1931,11 @@ def keyboardListener(key, x, y):
 
     # Normalize to lowercase
     key_lower = key.lower()
+
+    # ESC to quit
+    if key == b'\x1b':
+        glutDestroyWindow(glutGetWindow())
+        os._exit(0)
 
     # Name entry mode
     if game_state == STATE_NAME_ENTRY:
@@ -1851,29 +2029,28 @@ def setupCamera():
     global cam_ang
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
-    gluPerspective(FOV, float(WIN_W) / float(WIN_H), 1, 10000)
+    gluPerspective(FOV, float(WIN_W) / float(WIN_H), 1, 30000)
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 
     if fp_view:
+        # First-person: eye at head height, look in facing direction
         ang_r = math.radians(p_dir)
-        eye_x = p_pos[0] + gun_pos[0] / 2 * math.sin(ang_r) - gun_pos[1] * math.cos(ang_r)
-        eye_y = p_pos[1] - gun_pos[0] / 2 * math.cos(ang_r) - gun_pos[1] * math.sin(ang_r)
-        eye_z = p_pos[2] + gun_pos[2] + 25
-        cen_x = eye_x - math.sin(-ang_r) * 100
-        cen_y = eye_y - math.cos(-ang_r) * 100
+        eye_x = p_pos[0]
+        eye_y = p_pos[1]
+        eye_z = p_pos[2] + 100
+        cen_x = eye_x + math.sin(ang_r) * 100
+        cen_y = eye_y - math.cos(ang_r) * 100
         cen_z = eye_z
         gluLookAt(eye_x, eye_y, eye_z, cen_x, cen_y, cen_z, 0, 0, 1)
     else:
-        # 3P = same as FP but pulled back and up behind the player
+        # Third-person: same direction as FP but pulled back behind player
         ang_r = math.radians(p_dir)
-        # Where the player is looking (same as FP center)
-        look_x = p_pos[0] - math.sin(-ang_r) * 200
-        look_y = p_pos[1] - math.cos(-ang_r) * 200
-        look_z = p_pos[2] + 80
-        # Camera sits behind the player (opposite of facing direction)
-        eye_x = p_pos[0] + math.sin(-ang_r) * cam_dist
-        eye_y = p_pos[1] + math.cos(-ang_r) * cam_dist
+        look_x = p_pos[0] + math.sin(ang_r) * 200
+        look_y = p_pos[1] - math.cos(ang_r) * 200
+        look_z = p_pos[2] + 60
+        eye_x = p_pos[0] - math.sin(ang_r) * cam_dist
+        eye_y = p_pos[1] + math.cos(ang_r) * cam_dist
         eye_z = p_pos[2] + cam_h
         gluLookAt(eye_x, eye_y, eye_z, look_x, look_y, look_z, 0, 0, 1)
 
@@ -1940,8 +2117,9 @@ def showScreen():
     elif game_state in (STATE_PLAYING, STATE_PAUSED, STATE_GAME_OVER):
         setupCamera()
         # Update light position relative to scene
-        glLightfv(GL_LIGHT0, GL_POSITION, [200, 200, 2000, 0])
+        glLightfv(GL_LIGHT0, GL_POSITION, [500, 500, 5000, 0])
         draw_scene()
+        draw_fp_gun()
         draw_hud()
         if game_state == STATE_PAUSED:
             draw_pause()
@@ -1952,28 +2130,28 @@ def showScreen():
 
 
 def init_graphics():
-    """Set up OpenGL rendering state"""
-    glClearColor(0.04, 0.04, 0.12, 1.0)
+    """Set up OpenGL rendering state - bright outdoor theme"""
+    glClearColor(0.55, 0.78, 1.0, 1.0)  # Light sky blue
     glEnable(GL_DEPTH_TEST)
 
-    # Lighting
+    # Lighting - bright daylight
     glEnable(GL_LIGHTING)
     glEnable(GL_LIGHT0)
     glEnable(GL_COLOR_MATERIAL)
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE)
 
-    glLightfv(GL_LIGHT0, GL_AMBIENT, [0.25, 0.25, 0.3, 1.0])
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, [0.75, 0.75, 0.7, 1.0])
-    glLightfv(GL_LIGHT0, GL_SPECULAR, [0.3, 0.3, 0.3, 1.0])
-    glLightfv(GL_LIGHT0, GL_POSITION, [200, 200, 2000, 0])
+    glLightfv(GL_LIGHT0, GL_AMBIENT, [0.45, 0.45, 0.45, 1.0])
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, [0.9, 0.88, 0.82, 1.0])
+    glLightfv(GL_LIGHT0, GL_SPECULAR, [0.5, 0.5, 0.5, 1.0])
+    glLightfv(GL_LIGHT0, GL_POSITION, [500, 500, 5000, 0])
 
-    # Fog for atmosphere
+    # Light fog matching sky for distance fade
     glEnable(GL_FOG)
-    fog_color = [0.04, 0.04, 0.12, 1.0]
+    fog_color = [0.55, 0.78, 1.0, 1.0]
     glFogfv(GL_FOG_COLOR, fog_color)
     glFogi(GL_FOG_MODE, GL_LINEAR)
-    glFogf(GL_FOG_START, 2000)
-    glFogf(GL_FOG_END, 6000)
+    glFogf(GL_FOG_START, 6000)
+    glFogf(GL_FOG_END, 18000)
 
     glShadeModel(GL_SMOOTH)
 
