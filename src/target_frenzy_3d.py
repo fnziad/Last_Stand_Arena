@@ -14,6 +14,7 @@ Features:
 - Minimap, HUD bars, and particle effects
 
 Author: Fahad Nadim Ziad
+Copyright: (c) 2026 Fahad Nadim Ziad
 License: MIT
 """
 
@@ -1353,20 +1354,97 @@ def draw_fp_gun():
         sway_x = math.sin(game_time * 8) * 0.012
         sway_y = abs(math.sin(game_time * 8)) * 0.008
 
-    # Position: bottom right of viewport (varies by weapon)
+    # Draw weapon-specific model
     if current_weapon == 'pistol':
-        glTranslatef(0.3 + sway_x, -0.32 + sway_y, -0.6)
-        glScalef(0.65, 0.65, 0.55)
-        glRotatef(-5, 0, 1, 0)
+        _draw_fp_pistol(sway_x, sway_y)
     elif current_weapon == 'shotgun':
-        glTranslatef(0.32 + sway_x, -0.42 + sway_y, -0.9)
-        glScalef(1.1, 1.2, 1.15)
-        glRotatef(-8, 0, 1, 0)
-        glRotatef(-2, 1, 0, 0)
+        _draw_fp_shotgun(sway_x, sway_y)
     else:
-        glTranslatef(0.35 + sway_x, -0.4 + sway_y, -0.85)
-        glRotatef(-8, 0, 1, 0)
-        glRotatef(-2, 1, 0, 0)
+        _draw_fp_assault_rifle(sway_x, sway_y)
+
+    # Restore matrices
+    glPopMatrix()
+    glMatrixMode(GL_PROJECTION)
+    glPopMatrix()
+    glMatrixMode(GL_MODELVIEW)
+    glEnable(GL_FOG)
+
+
+def _draw_fp_pistol(sway_x, sway_y):
+    """Draw first-person pistol model"""
+    glTranslatef(0.28 + sway_x, -0.30 + sway_y, -0.55)
+    glRotatef(-5, 0, 1, 0)
+
+    # Slide (top)
+    glColor3f(0.22, 0.22, 0.28)
+    glPushMatrix()
+    glScalef(0.035, 0.035, 0.18)
+    glutSolidCube(1)
+    glPopMatrix()
+
+    # Barrel
+    glColor3f(0.18, 0.18, 0.22)
+    glPushMatrix()
+    glTranslatef(0, 0.005, -0.12)
+    glScalef(0.018, 0.018, 0.08)
+    glutSolidCube(1)
+    glPopMatrix()
+
+    # Frame / lower
+    glColor3f(0.28, 0.26, 0.22)
+    glPushMatrix()
+    glTranslatef(0, -0.02, 0.02)
+    glScalef(0.032, 0.025, 0.12)
+    glutSolidCube(1)
+    glPopMatrix()
+
+    # Grip
+    glColor3f(0.18, 0.14, 0.08)
+    glPushMatrix()
+    glTranslatef(0, -0.07, 0.06)
+    glRotatef(15, 1, 0, 0)
+    glScalef(0.032, 0.08, 0.035)
+    glutSolidCube(1)
+    glPopMatrix()
+
+    # Magazine
+    glColor3f(0.15, 0.13, 0.1)
+    glPushMatrix()
+    glTranslatef(0, -0.06, 0.04)
+    glScalef(0.024, 0.05, 0.028)
+    glutSolidCube(1)
+    glPopMatrix()
+
+    # Trigger guard
+    glColor3f(0.25, 0.25, 0.3)
+    glPushMatrix()
+    glTranslatef(0, -0.035, 0.03)
+    glScalef(0.028, 0.012, 0.04)
+    glutSolidCube(1)
+    glPopMatrix()
+
+    # Hand
+    glColor3f(0.9, 0.75, 0.6)
+    glPushMatrix()
+    glTranslatef(0, -0.055, 0.04)
+    glScalef(0.05, 0.04, 0.065)
+    glutSolidCube(1)
+    glPopMatrix()
+
+    # Front sight
+    glColor3f(0.5, 0.5, 0.55)
+    glPushMatrix()
+    glTranslatef(0, 0.028, -0.07)
+    glScalef(0.006, 0.014, 0.006)
+    glutSolidCube(1)
+    glPopMatrix()
+
+
+def _draw_fp_assault_rifle(sway_x, sway_y):
+    """Draw first-person assault rifle model"""
+    glTranslatef(0.35 + sway_x, -0.4 + sway_y, -0.85)
+    glRotatef(-8, 0, 1, 0)
+    glRotatef(-2, 1, 0, 0)
 
     # Receiver body
     glColor3f(0.24, 0.24, 0.3)
@@ -1433,7 +1511,7 @@ def draw_fp_gun():
     glutSolidCube(1)
     glPopMatrix()
 
-    # Supporting hand (forward grip)
+    # Supporting hand
     glColor3f(0.9, 0.75, 0.6)
     glPushMatrix()
     glTranslatef(0, -0.015, -0.08)
@@ -1441,12 +1519,86 @@ def draw_fp_gun():
     glutSolidCube(1)
     glPopMatrix()
 
-    # Restore matrices
+
+def _draw_fp_shotgun(sway_x, sway_y):
+    """Draw first-person shotgun model"""
+    glTranslatef(0.32 + sway_x, -0.42 + sway_y, -0.9)
+    glRotatef(-8, 0, 1, 0)
+    glRotatef(-2, 1, 0, 0)
+
+    # Long barrel (thicker than AR)
+    glColor3f(0.2, 0.2, 0.25)
+    glPushMatrix()
+    glTranslatef(0, 0.01, -0.22)
+    glScalef(0.032, 0.032, 0.5)
+    glutSolidCube(1)
     glPopMatrix()
-    glMatrixMode(GL_PROJECTION)
+
+    # Under barrel (tube magazine)
+    glColor3f(0.22, 0.2, 0.18)
+    glPushMatrix()
+    glTranslatef(0, -0.015, -0.18)
+    glScalef(0.025, 0.025, 0.42)
+    glutSolidCube(1)
     glPopMatrix()
-    glMatrixMode(GL_MODELVIEW)
-    glEnable(GL_FOG)
+
+    # Receiver
+    glColor3f(0.26, 0.24, 0.2)
+    glPushMatrix()
+    glTranslatef(0, 0, 0.05)
+    glScalef(0.055, 0.065, 0.2)
+    glutSolidCube(1)
+    glPopMatrix()
+
+    # Pump grip (forend)
+    glColor3f(0.35, 0.22, 0.1)
+    glPushMatrix()
+    glTranslatef(0, -0.01, -0.1)
+    glScalef(0.045, 0.05, 0.1)
+    glutSolidCube(1)
+    glPopMatrix()
+
+    # Stock
+    glColor3f(0.35, 0.22, 0.1)
+    glPushMatrix()
+    glTranslatef(0, -0.01, 0.22)
+    glRotatef(-3, 1, 0, 0)
+    glScalef(0.04, 0.055, 0.18)
+    glutSolidCube(1)
+    glPopMatrix()
+
+    # Grip
+    glColor3f(0.3, 0.2, 0.1)
+    glPushMatrix()
+    glTranslatef(0, -0.07, 0.12)
+    glRotatef(18, 1, 0, 0)
+    glScalef(0.035, 0.08, 0.04)
+    glutSolidCube(1)
+    glPopMatrix()
+
+    # Hand on grip
+    glColor3f(0.9, 0.75, 0.6)
+    glPushMatrix()
+    glTranslatef(0, -0.05, 0.06)
+    glScalef(0.055, 0.04, 0.07)
+    glutSolidCube(1)
+    glPopMatrix()
+
+    # Hand on pump
+    glColor3f(0.9, 0.75, 0.6)
+    glPushMatrix()
+    glTranslatef(0, -0.015, -0.1)
+    glScalef(0.055, 0.035, 0.06)
+    glutSolidCube(1)
+    glPopMatrix()
+
+    # Muzzle
+    glColor3f(0.15, 0.15, 0.18)
+    glPushMatrix()
+    glTranslatef(0, 0.01, -0.48)
+    glScalef(0.036, 0.036, 0.03)
+    glutSolidCube(1)
+    glPopMatrix()
 
 
 # ============================================================
@@ -1590,7 +1742,7 @@ def fire_weapon():
 
     fire_cooldown = w['fire_rate']
     w['ammo'] -= 1
-    total_shots_fired += 1
+    total_shots_fired += w['pellets']  # Count each pellet as a shot for accurate accuracy%
     muzzle_flash_timer = 0.12
 
     if fp_view:
@@ -1921,11 +2073,15 @@ def detect_hits():
             if dx * dx + dy * dy <= hit_r * hit_r:
                 dmg = 10 * s[4]  # base damage * multiplier
 
-                # Headshot detection (hit near top of enemy)
+                # Headshot detection - compare shot height vs enemy head zone
                 headshot = False
-                if s[2] > et['size'] * 1.6:
-                    dmg *= 2.0
-                    headshot = True
+                enemy_head_z = e['pos'][2] + et['size'] * 1.8  # Top of enemy
+                enemy_body_top = e['pos'][2] + et['size'] * 1.3
+                if s[2] >= enemy_body_top and s[2] <= enemy_head_z + 15:
+                    headshot_chance = 0.25  # 25% chance if in head zone
+                    if random.random() < headshot_chance:
+                        dmg *= 2.0
+                        headshot = True
 
                 e['hp'] -= dmg
                 total_shots_hit += 1
