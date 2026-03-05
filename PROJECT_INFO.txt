@@ -28,7 +28,7 @@ Graphics & Rendering
   - OpenGL fixed-function pipeline (glBegin/glEnd, display lists, fog, blending)
   - 3D scene construction: cylinders, spheres, cones, tori via GLUT primitives
   - Custom first-person weapon models (distinct pistol / AR / shotgun meshes)
-  - 3D power-up shapes: cross, diamond, spinning star, dome
+  - 3D power-up shapes: cross, diamond, spinning star, dome, ammo crate
   - Muzzle flash effect using additive blending (GL_ONE)
   - HUD / 2D overlay rendering with orthographic projection
   - Floating damage numbers and hit markers
@@ -49,8 +49,12 @@ Game Architecture
   - Accurate per-weapon damage/accuracy/fire-rate/reload model
 
 Weapon System
-  - Three weapons: Pistol, Assault Rifle, Shotgun
-  - Each weapon has: damage, fire rate, pellet count, ammo pool, reload time
+  - Three weapons: Pistol (15/90), Assault Rifle (30/150), Shotgun (8/32)
+  - Each weapon has separate magazine and reserve ammo pools
+  - Reload deducts from reserve; blocked if magazine already full or reserve empty
+  - HUD shows "mag | reserve" — player must manage ammo economy
+  - Enemies drop ammo crates on death (40% drop chance)
+  - Ammo crates also respawn randomly in the arena every 10 seconds
   - Accuracy tracks total shots vs hits at pellet granularity (shotgun fix)
   - Headshot detection uses height zones + 25% probability gate
 
@@ -60,13 +64,14 @@ Enemy AI
   - Multiple enemy types with different speed/health/armor
 
 Power-Ups
-  - Four types: Health, Ammo, Speed boost, Shield
+  - Five types: Health, Speed, Damage, Shield, Ammo Crate
   - Distinct 3D shapes per type; animated rotation
+  - Ammo crate: orange box with bullet stubs, restores 25% reserve for all weapons
   - Collected on proximity
 
 UI / UX
   - Bitmap font rendering for HUD text (glutBitmapCharacter)
-  - Kill feed, crosshair, ammo counter, health/shield bars
+  - Kill feed, crosshair, "mag | reserve" ammo counter, health/shield bars
   - Name entry screen, main menu, game over / victory screens
   - FPS limiter (GLUT idle callback with sleep)
   - Pause / resume with overlay
@@ -126,6 +131,12 @@ BattleRoyale/
    Height-zone detection first (only the top ~25% of enemy height qualifies),
    then a 25% probability gate — prevents guaranteed headshots while still
    rewarding aimed shots.
+
+6. Magazine / reserve ammo economy
+   Each weapon carries a magazine (in-gun bullets) and a reserve (spare rounds).
+   Reloading draws from reserve, not infinite supply. Running out of reserve
+   triggers a "No ammo!" warning and blocks reload — forcing players to hunt
+   ammo crates dropped by enemies or spawned in the arena.
 
 --------------------------------------------------------------------------------
   GAMEPLAY SUMMARY

@@ -175,6 +175,7 @@ powerup_types = {
     'speed':  {'color': (0.1, 0.5, 1.0),  'label': 'SPD'},
     'damage': {'color': (1.0, 0.1, 0.1),  'label': 'DMG'},
     'shield': {'color': (0.9, 0.9, 0.1),  'label': 'SHD'},
+    'ammo':   {'color': (1.0, 0.55, 0.0), 'label': 'AMO'},
 }
 powerup_spawn_timer = 0
 powerup_spawn_interval = 10
@@ -1246,6 +1247,31 @@ def draw_powerup_3d(pu):
         glRotatef(90, 1, 0, 0)
         glutSolidTorus(2, 16, 8, 16)
 
+    elif pu['type'] == 'ammo':
+        # Orange ammo crate: flat box with bullet cylinders on top
+        glColor3f(1.0, 0.55, 0.0)
+        glPushMatrix()
+        glScalef(18, 12, 8)
+        glutSolidCube(1)
+        glPopMatrix()
+        # Three bullet stubs sticking up
+        glColor3f(0.9, 0.8, 0.2)
+        for bx in (-5, 0, 5):
+            glPushMatrix()
+            glTranslatef(bx, 0, 8)
+            q2 = gluNewQuadric()
+            gluCylinder(q2, 3, 2, 10, 6, 1)
+            glPopMatrix()
+        # AMO label cross-line
+        glDisable(GL_LIGHTING)
+        glColor3f(0.2, 0.1, 0.0)
+        glLineWidth(2)
+        glBegin(GL_LINES)
+        glVertex3f(-7, 0, 5); glVertex3f(7, 0, 5)
+        glEnd()
+        glLineWidth(1)
+        glEnable(GL_LIGHTING)
+
     glPopMatrix()
 
 
@@ -2133,9 +2159,9 @@ def detect_hits():
                     kills_this_level += 1
                     total_kills += 1
 
-                    # Ammo reward on kill
-                    for ww in weapons.values():
-                        ww['ammo'] = min(ww['ammo'] + 3, ww['max_ammo'])
+                    # Ammo drop on kill (40% chance enemy drops ammo crate)
+                    if random.random() < 0.40:
+                        powerups.append({'pos': [e['pos'][0], e['pos'][1], 0], 'type': 'ammo', 'active': True})
 
                     # Streak bonuses
                     if kill_streak == 5:
@@ -2232,6 +2258,10 @@ def update_powerups():
                 p_shield = p_shield_max
                 p_shield_timer = 15
                 add_notification("Shield Active! (15s)", (0.9, 0.9, 0.1), 2)
+            elif ptype == 'ammo':
+                for ww in weapons.values():
+                    ww['reserve'] = min(ww['reserve'] + ww['max_reserve'] // 4, ww['max_reserve'])
+                add_notification("Ammo Restocked! (+25% reserve)", (1.0, 0.55, 0.0), 2)
             spawn_particles(pu['pos'], powerup_types[ptype]['color'], 8)
 
     powerups[:] = [pu for pu in powerups if pu['active']]

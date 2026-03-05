@@ -6,13 +6,13 @@ This guide walks you through installing and running **Last Stand Arena** on macO
 
 ## Requirements
 
-| Requirement | Version  | Notes                                     |
-|-------------|----------|-------------------------------------------|
-| Python      | 3.7+     | 3.10+ recommended                         |
-| pip         | Any      | Comes with Python                         |
-| PyOpenGL    | 3.x      | Only external dependency                  |
-| OpenGL      | System   | Pre-installed on all desktop OS           |
-| GLUT / freeglut | System | See platform notes below              |
+| Requirement     | Version | Notes                           |
+| --------------- | ------- | ------------------------------- |
+| Python          | 3.7+    | 3.10+ recommended               |
+| pip             | Any     | Comes with Python               |
+| PyOpenGL        | 3.x     | Only external dependency        |
+| OpenGL          | System  | Pre-installed on all desktop OS |
+| GLUT / freeglut | System  | See platform notes below        |
 
 ---
 
@@ -54,6 +54,7 @@ python run_game.py
 
    > **Note for Apple Silicon (M1/M2/M3/M4):** GLUT is included in macOS system frameworks.
    > If you see an OpenGL/GLUT error, try:
+   >
    > ```bash
    > pip3 install --upgrade PyOpenGL PyOpenGL_accelerate
    > ```
@@ -76,6 +77,7 @@ python run_game.py
    - Copy `freeglut.dll` to `C:\Windows\System32\` (64-bit) or `C:\Windows\SysWOW64\` (32-bit).
 
    Alternatively, use the bundled DLL included with PyOpenGL:
+
    ```cmd
    pip install pyopengl-accelerate
    ```
@@ -166,14 +168,14 @@ If you see `OpenGL OK`, you're good to go.
 
 ## Troubleshooting
 
-| Problem | Solution |
-|---------|----------|
-| `ModuleNotFoundError: No module named 'OpenGL'` | Run `pip install PyOpenGL` |
-| `GLUT not found` / `libglut` error on Linux | Run `sudo apt install freeglut3` |
-| `freeglut.dll not found` on Windows | Copy `freeglut.dll` to System32 (see Windows section) |
-| Black screen / no window | Update your GPU drivers |
-| Game window does not open on macOS | Try running from Terminal directly, not from an IDE |
-| Slow performance | Close other GPU-intensive apps; ensure discrete GPU is active |
+| Problem                                         | Solution                                                      |
+| ----------------------------------------------- | ------------------------------------------------------------- |
+| `ModuleNotFoundError: No module named 'OpenGL'` | Run `pip install PyOpenGL`                                    |
+| `GLUT not found` / `libglut` error on Linux     | Run `sudo apt install freeglut3`                              |
+| `freeglut.dll not found` on Windows             | Copy `freeglut.dll` to System32 (see Windows section)         |
+| Black screen / no window                        | Update your GPU drivers                                       |
+| Game window does not open on macOS              | Try running from Terminal directly, not from an IDE           |
+| Slow performance                                | Close other GPU-intensive apps; ensure discrete GPU is active |
 
 ---
 
@@ -210,4 +212,4 @@ python3 src/last_stand_arena.py
 
 ---
 
-*Last Stand Arena — Fahad Nadim Ziad, 2026 — MIT License*
+_Last Stand Arena — Fahad Nadim Ziad, 2026 — MIT License_

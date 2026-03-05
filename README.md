@@ -29,35 +29,42 @@ Fight through waves of intelligent enemies across a massive arena while a shrink
 
 ### 🔫 Three-Weapon Arsenal
 
-| Weapon          | Key | Damage | Rate   | Ammo | Style                   |
-|-----------------|:---:|--------|--------|------|-------------------------|
-| Pistol          | `1` | 12     | Slow   | 50   | Precise single shots    |
-| Assault Rifle   | `2` | 10     | Fast   | 120  | Full-auto tracer rounds |
-| Shotgun         | `3` | 8 × 6  | Slow   | 24   | 6-pellet spread blast   |
+| Weapon        | Key | Damage | Rate | Mag | Reserve | Style                   |
+| ------------- | :-: | ------ | ---- | --- | ------- | ----------------------- |
+| Pistol        | `1` | 12     | Slow | 15  | 90      | Precise single shots    |
+| Assault Rifle | `2` | 10     | Fast | 30  | 150     | Full-auto tracer rounds |
+| Shotgun       | `3` | 8 × 6  | Slow | 8   | 32      | 6-pellet spread blast   |
 
 - Each weapon has a **unique first-person 3D model** rendered in-engine
-- Manual reload with `R`, auto-reload on empty, ammo refills on kills
+- Manual reload with `R`, auto-reload on empty mag
+- HUD shows `magazine | reserve` — run out of reserve and you're dry
+- Reload takes from reserve; **no reserve = no reload**
 
 ### 👾 Four Enemy Types
 
-| Type    | HP | Speed | Behaviour                          |
-|---------|----|-------|------------------------------------|
-| Grunt   | 30 | 3.5   | Direct chaser, medium accuracy     |
-| Tank    | 80 | 1.8   | Slow, heavy armour, high damage    |
-| Scout   | 15 | 6.0   | Fast zigzag, hard to track         |
-| Sniper  | 25 | 1.2   | Holds distance, highly accurate    |
+| Type   | HP  | Speed | Behaviour                       |
+| ------ | --- | ----- | ------------------------------- |
+| Grunt  | 30  | 3.5   | Direct chaser, medium accuracy  |
+| Tank   | 80  | 1.8   | Slow, heavy armour, high damage |
+| Scout  | 15  | 6.0   | Fast zigzag, hard to track      |
+| Sniper | 25  | 1.2   | Holds distance, highly accurate |
 
 - All enemies **shoot back** with type-specific accuracy and fire rates
 - HP scales with level (+12% per level)
 
 ### 💊 Power-Ups (with 3D models)
 
-| Power-Up     | Shape           | Effect                   |
-|--------------|-----------------|--------------------------|
-| Health Pack  | Green cross     | +30 HP                   |
-| Speed Boost  | Blue diamond    | 1.5× speed for 10 s      |
-| Damage Boost | Red spiky star  | 2× damage for 10 s       |
-| Shield       | Yellow dome     | 50 HP absorb for 15 s    |
+| Power-Up     | Shape             | Effect                      |
+| ------------ | ----------------- | --------------------------- |
+| Health Pack  | Green cross       | +30 HP                      |
+| Speed Boost  | Blue diamond      | 1.5× speed for 10 s         |
+| Damage Boost | Red spiky star    | 2× damage for 10 s          |
+| Shield       | Yellow dome       | 50 HP absorb for 15 s       |
+| Ammo Crate   | Orange crate      | +25% reserve for all weapons |
+
+- **Ammo crates drop from killed enemies** (40% drop chance)
+- Ammo crates also spawn randomly in the arena every 10 seconds
+- Running dry with no reserve shows **"No ammo!"** warning
 
 ### 🎯 Combat Feel
 
@@ -85,20 +92,20 @@ Fight through waves of intelligent enemies across a massive arena while a shrink
 
 ## Controls
 
-| Action                  | Key(s)               |
-|-------------------------|----------------------|
-| Move forward / back     | `W` / `S`            |
-| Rotate left / right     | `A` / `D`            |
-| Strafe left / right     | `Q` / `E`            |
-| Sprint                  | `Shift` + move       |
-| Fire                    | `Space`              |
-| Switch weapon           | `1` / `2` / `3`      |
-| Reload                  | `R`                  |
-| Toggle FP / 3P camera   | `F`                  |
-| Zoom (third person)     | `Arrow Keys`         |
-| Pause / Resume          | `P`                  |
-| Restart (after death)   | `R`                  |
-| Quit                    | `ESC`                |
+| Action                | Key(s)          |
+| --------------------- | --------------- |
+| Move forward / back   | `W` / `S`       |
+| Rotate left / right   | `A` / `D`       |
+| Strafe left / right   | `Q` / `E`       |
+| Sprint                | `Shift` + move  |
+| Fire                  | `Space`         |
+| Switch weapon         | `1` / `2` / `3` |
+| Reload                | `R`             |
+| Toggle FP / 3P camera | `F`             |
+| Zoom (third person)   | `Arrow Keys`    |
+| Pause / Resume        | `P`             |
+| Restart (after death) | `R`             |
+| Quit                  | `ESC`           |
 
 ---
 
@@ -142,15 +149,15 @@ last_stand_arena/
 
 ## Technical Overview
 
-| Area             | Implementation                                          |
-|------------------|---------------------------------------------------------|
-| Language         | Python 3                                                |
-| Graphics API     | OpenGL 2.x fixed-function via PyOpenGL + GLUT           |
-| 3D Models        | Primitives: cubes, spheres, octahedra, tori, cylinders  |
-| Physics          | Momentum + friction, delta-time scaled, AABB + sphere  |
-| AI               | 4 behaviour trees: chase, zigzag, range-hold, direct   |
-| Frame rate       | 60 FPS target with sleep-based limiter                  |
-| Architecture     | Single-file engine, modular functions, state machine   |
+| Area         | Implementation                                         |
+| ------------ | ------------------------------------------------------ |
+| Language     | Python 3                                               |
+| Graphics API | OpenGL 2.x fixed-function via PyOpenGL + GLUT          |
+| 3D Models    | Primitives: cubes, spheres, octahedra, tori, cylinders |
+| Physics      | Momentum + friction, delta-time scaled, AABB + sphere  |
+| AI           | 4 behaviour trees: chase, zigzag, range-hold, direct   |
+| Frame rate   | 60 FPS target with sleep-based limiter                 |
+| Architecture | Single-file engine, modular functions, state machine   |
 
 ---
 
