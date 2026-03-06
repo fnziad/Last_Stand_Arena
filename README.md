@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Python-3.7+-3776AB?style=for-the-badge&logo=python&logoColor=white"/>
   <img src="https://img.shields.io/badge/OpenGL-PyOpenGL-5586A4?style=for-the-badge&logo=opengl&logoColor=white"/>
   <img src="https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge"/>
-  <img src="https://img.shields.io/badge/Lines_of_Code-2600+-f97316?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/Lines_of_Code-2700+-f97316?style=for-the-badge"/>
   <img src="https://img.shields.io/badge/Platform-macOS%20%7C%20Windows%20%7C%20Linux-8b5cf6?style=for-the-badge"/>
 </p>
 
@@ -27,21 +27,25 @@ Fight through waves of intelligent enemies across a massive arena while a shrink
 
 ## Screenshots
 
-| Name Entry | Controls & Guidelines |
-|:---:|:---:|
+|                Name Entry                 |           Controls & Guidelines           |
+| :---------------------------------------: | :---------------------------------------: |
 | ![Name Entry](previews/01_name_entry.png) | ![Guidelines](previews/02_guidelines.png) |
 
-| Third-Person Arena | First-Person Shotgun |
-|:---:|:---:|
+|                       Third-Person Arena                        |                     First-Person Shotgun                      |
+| :-------------------------------------------------------------: | :-----------------------------------------------------------: |
 | ![Third Person Gameplay](previews/03_third_person_gameplay.png) | ![First Person Shotgun](previews/04_first_person_shotgun.png) |
 
-| FP Zone Damage | FP Combat Close-Up |
-|:---:|:---:|
+|                 FP Zone Damage                 |                  FP Combat Close-Up                   |
+| :--------------------------------------------: | :---------------------------------------------------: |
 | ![Zone Damage](previews/05_fp_zone_damage.png) | ![Combat Close-Up](previews/06_fp_combat_closeup.png) |
 
-| Zone Boundary Warning | Game Over Stats |
-|:---:|:---:|
+|              Zone Boundary Warning              |                   Game Over Stats                   |
+| :---------------------------------------------: | :-------------------------------------------------: |
 | ![Zone Boundary](previews/07_zone_boundary.png) | ![Game Over Stats](previews/09_game_over_stats.png) |
+
+## Gameplay Recording
+
+- Full gameplay capture: [previews/last_stand_arena_gameplay.mp4](previews/last_stand_arena_gameplay.mp4)
 
 ---
 
@@ -137,8 +141,8 @@ Fight through waves of intelligent enemies across a massive arena while a shrink
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/fnziad/last_stand_arena.git
-cd last_stand_arena
+git clone https://github.com/fnziad/Last_Stand_Arena.git
+cd Last_Stand_Arena
 
 # 2. Install the dependency
 pip install -r requirements.txt
@@ -155,8 +159,11 @@ python run_game.py
 
 ```
 last_stand_arena/
+├── previews/                  # Screenshots and gameplay recording
+│   ├── *.png                  # README preview images
+│   └── last_stand_arena_gameplay.mp4
 ├── src/
-│   └── last_stand_arena.py   # Complete game engine (~2,600 lines)
+│   └── last_stand_arena.py   # Complete game engine (~2,730 lines)
 ├── run_game.py               # Launcher with controls reference
 ├── requirements.txt          # Single dependency: PyOpenGL
 ├── INSTALL.md                # Full installation guide
@@ -177,7 +184,7 @@ last_stand_arena/
 | Physics      | Momentum + friction, delta-time scaled, AABB + sphere  |
 | AI           | 4 behaviour trees: chase, zigzag, range-hold, direct   |
 | Frame rate   | 60 FPS target with sleep-based limiter                 |
-| Architecture | Single-file engine, modular functions, state machine   |
+| Architecture | Single-file engine (~2,730 LOC), modular state machine |
 
 ---
 

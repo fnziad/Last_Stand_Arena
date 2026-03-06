@@ -6,7 +6,7 @@
 Author      : Fahad Nadim Ziad
 Year        : 2026
 License     : MIT
-Repository  : https://github.com/fnziad/target_frenzy_3D
+Repository  : https://github.com/fnziad/Last_Stand_Arena
 
 --------------------------------------------------------------------------------
   OVERVIEW
@@ -41,7 +41,7 @@ Camera System
   - Arrow-key zoom in third-person mode
 
 Game Architecture
-  - Single-file Python game engine (~2700 lines)
+  - Single-file Python game engine (~2730 lines)
   - Entity-component style dictionaries for enemies, bullets, power-ups
   - Wave-based enemy spawning with difficulty scaling
   - Collision detection: AABB sphere vs sphere, bullet-enemy overlap
@@ -61,7 +61,8 @@ Weapon System
 Enemy AI
   - Line-of-sight patrol → chase → attack state machine
   - Health bars rendered as 3D billboard quads
-  - Multiple enemy types with different speed/health/armor
+  - Four enemy types: Grunt, Tank, Scout, Sniper
+  - Enemy ranged attacks with type-specific accuracy, fire rate, and damage
 
 Power-Ups
   - Five types: Health, Speed, Damage, Shield, Ammo Crate
@@ -72,6 +73,7 @@ Power-Ups
 UI / UX
   - Bitmap font rendering for HUD text (glutBitmapCharacter)
   - Kill feed, crosshair, "mag | reserve" ammo counter, health/shield bars
+  - Minimap, zone ring, combo/streak announcements, floating combat text
   - Name entry screen, main menu, game over / victory screens
   - FPS limiter (GLUT idle callback with sleep)
   - Pause / resume with overlay
@@ -86,6 +88,7 @@ Input Handling
 --------------------------------------------------------------------------------
 
 BattleRoyale/
+├── previews/                   — Screenshots and gameplay recording assets
 ├── src/
 │   └── last_stand_arena.py     — Main game engine (all game logic + rendering)
 ├── run_game.py                 — Launcher with controls banner
@@ -138,16 +141,21 @@ BattleRoyale/
    triggers a "No ammo!" warning and blocks reload — forcing players to hunt
    ammo crates dropped by enemies or spawned in the arena.
 
+7. Documentation-first presentation
+  The project now includes renamed screenshots, a gameplay recording, an
+  installation guide, and a polished README for portfolio / GitHub showcase use.
+
 --------------------------------------------------------------------------------
   GAMEPLAY SUMMARY
 --------------------------------------------------------------------------------
 
-  Gamemode     : Wave-based survival (battle royale style)
-  Perspective  : First-person (default) or third-person (toggle with F)
-  Weapons      : Pistol, Assault Rifle, Shotgun (switch with 1/2/3)
-  Enemies      : Multiple types, increasing waves
-  Power-ups    : Health, Ammo, Speed, Shield
-  Win Condition: Survive all waves
+  Gamemode      : Wave-based survival (battle royale style)
+  Perspective   : First-person (default) or third-person (toggle with F)
+  Weapons       : Pistol, Assault Rifle, Shotgun (switch with 1/2/3)
+  Enemies       : Grunt, Tank, Scout, Sniper with increasing wave pressure
+  Power-ups     : Health, Speed, Damage, Shield, Ammo Crate
+  Zone Mechanic : Shrinking safe zone with damage outside the boundary
+  Progression   : Level-ups via kill targets; endless escalating survival
   Lose Condition: Health reaches zero
 
 --------------------------------------------------------------------------------
